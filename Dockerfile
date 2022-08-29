@@ -13,6 +13,7 @@ RUN npm install
 # Copy everything inside the folder where Dockerfile is to workdir (.dockerignore will make this ignore node_modules)
 COPY . .
 
+# Define another image to be used in production using the previous one as base
 FROM base as production
 
 ENV NODE_PATH=./build

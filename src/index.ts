@@ -1,18 +1,28 @@
 // imports
-import express, { response } from 'express';
+import { ApolloServer } from 'apollo-server-express';
+import express from 'express';
+import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
+import http from 'http';
+import Schema from './Schema';
+import Resolvers from './Resolvers';
+import { DocumentNode } from 'graphql';
 
-// constants
 const PORT = process.env.PORT || 3333;
 
-// app
-const app = express();
-app.get('/', (request, response) => {
-  response.json({ message: 'Seems that everything went fine :)' });
-});
-// app.get('/test', (request, response) => {
-//   response.json({ message: 'Testing new route :)' });
-// });
+async function startServer(schema: DocumentNode, resolvers: { Query: Object, Mutation: Object }){
+  const app = express();
+  const httpServer = http.createServer(app);
 
-app.listen(PORT, () => {
-  console.log(`Server is running on PORT ${PORT}`);
-});
+  const apolloServer = new ApolloServer({
+    typeDefs: schema,
+    resolvers,
+    plugins: [ApolloServerPluginDrainHttpServer({ httpServer })]
+  });
+
+  await apolloServer.start();
+  apolloServer.applyMiddleware({ app });
+
+  httpServer.listen({ port: process.env.PORT || 3333 }, () => console.log(`Server is running on PORT ${PORT}`));
+}
+
+startServer(Schema, Resolvers);
